@@ -312,7 +312,9 @@
         </div>
         <div class="modal-body">
           <div class="export-preview-container">
-            <canvas id="exportPreviewCanvas" width="128" height="128"></canvas>
+            <img id="exportPreviewImg" class="export-preview-img" alt="Pixel Art Preview" title="Touch & hold on iOS to save directly to Photos">
+            <canvas id="exportPreviewCanvas" width="128" height="128" class="hidden"></canvas>
+            <span class="preview-longpress-hint">Touch &amp; hold image to save to Photos</span>
           </div>
           <div class="export-options">
             <label for="selectExportScale">Resolution Scale:</label>
@@ -326,21 +328,38 @@
             <span id="exportDimensionLabel" class="text-muted text-xs">Dimensions: 256 × 256 px</span>
           </div>
           <div class="export-actions">
-            <button id="btnDownloadPNG" class="btn btn-primary">
+            <button id="btnSharePhotos" class="btn btn-primary btn-save-photos">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <polyline points="16 6 12 2 8 6"></polyline>
+                <line x1="12" y1="2" x2="12" y2="15"></line>
               </svg>
-              Download PNG
+              Save to Photos / Share
             </button>
-            <button id="btnCopyPNG" class="btn btn-secondary">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              Copy Image
-            </button>
+            <div class="export-actions-row">
+              <button id="btnDownloadPNG" class="btn btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Download PNG
+              </button>
+              <button id="btnCopyPNG" class="btn btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Copy Image
+              </button>
+            </div>
+          </div>
+          <div class="export-ios-hint">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+              <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+            <span><strong>iOS Tip:</strong> Tap <em>Save to Photos / Share</em> or touch &amp; hold the preview image above to save directly into your Apple Photos camera roll.</span>
           </div>
           <div class="divider-horizontal"></div>
           <div class="project-io-actions">

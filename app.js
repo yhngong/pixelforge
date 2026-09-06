@@ -189,6 +189,8 @@
   const btnCloseExportModal = document.getElementById('btnCloseExportModal');
   const exportPreviewCanvas = document.getElementById('exportPreviewCanvas');
   const exportPreviewCtx = exportPreviewCanvas.getContext('2d');
+  const exportPreviewImg = document.getElementById('exportPreviewImg');
+  const btnSharePhotos = document.getElementById('btnSharePhotos');
   const selectExportScale = document.getElementById('selectExportScale');
   const exportDimensionLabel = document.getElementById('exportDimensionLabel');
   const btnDownloadPNG = document.getElementById('btnDownloadPNG');
@@ -733,7 +735,55 @@
     exportPreviewCtx.clearRect(0, 0, targetSize, targetSize);
     exportPreviewCtx.drawImage(pixelCanvas, 0, 0, targetSize, targetSize);
 
+    const dataUrl = exportPreviewCanvas.toDataURL('image/png');
+    if (exportPreviewImg) {
+      exportPreviewImg.src = dataUrl;
+    }
+
     exportDimensionLabel.textContent = `Dimensions: ${targetSize} × ${targetSize} px`;
+  }
+
+  async function shareOrSaveToPhotos() {
+    const scale = parseInt(selectExportScale.value, 10);
+    const targetSize = gridSize * scale;
+
+    const outCanvas = document.createElement('canvas');
+    outCanvas.width = targetSize;
+    outCanvas.height = targetSize;
+    const outCtx = outCanvas.getContext('2d');
+    outCtx.imageSmoothingEnabled = false;
+    outCtx.drawImage(pixelCanvas, 0, 0, targetSize, targetSize);
+
+    outCanvas.toBlob(async (blob) => {
+      if (!blob) {
+        showToast('Failed to create image');
+        return;
+      }
+
+      const filename = `pixelforge-${gridSize}x${gridSize}-${scale}x.png`;
+      const file = new File([blob], filename, { type: 'image/png' });
+
+      // If Web Share API with file sharing is supported (iOS 15+, modern mobile & desktop Safari)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'PixelForge Artwork',
+            text: `PixelForge artwork (${targetSize}×${targetSize}px)`
+          });
+          showToast('Opened iOS Share Sheet!');
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            console.warn('Share error:', err);
+            downloadPNG();
+          }
+        }
+      } else {
+        // Fallback for browsers lacking Web Share file support
+        downloadPNG();
+        showToast('PNG Downloaded! (On iOS: touch & hold image to save)');
+      }
+    }, 'image/png');
   }
 
   function downloadPNG() {
@@ -941,6 +991,7 @@
       if (e.target === exportModal) closeExportModal();
     });
     selectExportScale.addEventListener('change', updateExportPreview);
+    btnSharePhotos.addEventListener('click', shareOrSaveToPhotos);
     btnDownloadPNG.addEventListener('click', downloadPNG);
     btnCopyPNG.addEventListener('click', copyPNGToClipboard);
 

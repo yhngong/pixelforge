@@ -637,12 +637,32 @@ body {
 .export-preview-container {
   background: #000;
   border-radius: var(--radius-md);
-  padding: 20px;
+  padding: 18px 20px 14px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   min-height: 140px;
   border: 1px solid var(--border);
+}
+
+.export-preview-img {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  max-width: 100%;
+  max-height: 140px;
+  object-fit: contain;
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: auto !important;
+  user-select: auto !important;
+  cursor: pointer;
+}
+
+.preview-longpress-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
 }
 
 #exportPreviewCanvas {
@@ -665,11 +685,65 @@ body {
 
 .export-actions {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.export-actions .btn {
+.export-actions .btn-save-photos {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-color: #6366f1;
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 10px 16px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.export-actions .btn-save-photos:hover {
+  background: linear-gradient(135deg, #4338ca, #6d28d9);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+}
+
+.export-actions-row {
+  display: flex;
+  gap: 8px;
+}
+
+.export-actions-row .btn {
   flex: 1;
+}
+
+.export-ios-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.export-ios-hint svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--primary);
+}
+
+.export-ios-hint strong {
+  color: var(--text-main);
+}
+
+.export-ios-hint em {
+  color: #a5b4fc;
+  font-style: normal;
+  font-weight: 600;
 }
 
 .project-io-actions {
