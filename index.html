@@ -234,9 +234,18 @@
             </div>
           </div>
           <div class="preview-display-box" id="previewBox">
-            <canvas id="previewCanvas1x" class="preview-thumb" width="16" height="16" title="1x (Original)"></canvas>
-            <canvas id="previewCanvas2x" class="preview-thumb" width="32" height="32" title="2x"></canvas>
-            <canvas id="previewCanvas4x" class="preview-thumb" width="64" height="64" title="4x"></canvas>
+            <div class="preview-item" id="previewItem1x" title="1x scale">
+              <canvas id="previewCanvas1x" class="preview-thumb" width="16" height="16"></canvas>
+              <span class="preview-scale-label">1x</span>
+            </div>
+            <div class="preview-item" id="previewItem2x" title="2x scale">
+              <canvas id="previewCanvas2x" class="preview-thumb" width="32" height="32"></canvas>
+              <span class="preview-scale-label">2x</span>
+            </div>
+            <div class="preview-item" id="previewItem4x" title="4x scale">
+              <canvas id="previewCanvas4x" class="preview-thumb" width="64" height="64"></canvas>
+              <span class="preview-scale-label">4x</span>
+            </div>
           </div>
         </section>
 

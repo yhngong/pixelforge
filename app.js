@@ -291,6 +291,12 @@
 
     previewCtx4x.clearRect(0, 0, gridSize * 4, gridSize * 4);
     previewCtx4x.drawImage(pixelCanvas, 0, 0, gridSize * 4, gridSize * 4);
+
+    // Hide 4x when canvas is 48 or 64 so previews fit neatly within the sidebar without overflow
+    const previewItem4x = document.getElementById('previewItem4x');
+    if (previewItem4x) {
+      previewItem4x.style.display = gridSize >= 48 ? 'none' : 'flex';
+    }
   }
 
   // --- History (Undo / Redo) ---
