@@ -1,5 +1,7 @@
 # PixelForge 🎨✨
 
+> 🚀 **Live Demo**: [https://yhngong.github.io/pixelforge/](https://yhngong.github.io/pixelforge/)
+
 A lightweight, zero-dependency, in-browser **Pixel Art Editor & Sprite Maker** built with pure HTML5 Canvas, modern CSS, and JavaScript. Designed to run 100% client-side and deploy seamlessly to **GitHub Pages**.
 
 ![PixelForge Icon](icon.svg)
