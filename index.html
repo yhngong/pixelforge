@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#090d16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="PixelForge — A powerful in-browser pixel art editor and sprite maker with retro palettes and scalable HD export.">
+  
+  <title>PixelForge — Pixel Art & Sprite Maker</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Top App Navigation -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+          </svg>
+        </span>
+        <div class="brand-title">
+          <h1>PixelForge</h1>
+          <span class="brand-sub">Pixel Art & Sprite Studio</span>
+        </div>
+      </div>
+
+      <!-- Canvas Dimension & Grid Controls -->
+      <div class="header-controls">
+        <div class="control-group">
+          <label for="selectCanvasSize">Size:</label>
+          <select id="selectCanvasSize" class="select-input">
+            <option value="8">8 × 8</option>
+            <option value="16" selected>16 × 16</option>
+            <option value="24">24 × 24</option>
+            <option value="32">32 × 32</option>
+            <option value="48">48 × 48</option>
+            <option value="64">64 × 64</option>
+          </select>
+        </div>
+
+        <div class="divider-vertical"></div>
+
+        <!-- History actions -->
+        <button id="btnUndo" class="btn-icon" title="Undo (Ctrl+Z)" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7v6h6"></path>
+            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+          </svg>
+        </button>
+        <button id="btnRedo" class="btn-icon" title="Redo (Ctrl+Y)" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 7v6h-6"></path>
+            <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"></path>
+          </svg>
+        </button>
+
+        <div class="divider-vertical"></div>
+
+        <!-- Grid & Zoom -->
+        <button id="btnToggleGrid" class="btn-icon active" title="Toggle Grid Overlay">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="3" y1="15" x2="21" y2="15"></line>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <line x1="15" y1="3" x2="15" y2="21"></line>
+          </svg>
+        </button>
+        <button id="btnZoomOut" class="btn-icon" title="Zoom Out (-)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="8" y1="11" x2="14" y2="11"></line>
+          </svg>
+        </button>
+        <span id="zoomLevelIndicator" class="zoom-text">100%</span>
+        <button id="btnZoomIn" class="btn-icon" title="Zoom In (+)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="11" y1="8" x2="11" y2="14"></line>
+            <line x1="8" y1="11" x2="14" y2="11"></line>
+          </svg>
+        </button>
+
+        <div class="divider-vertical"></div>
+
+        <!-- Preset Samples -->
+        <div class="control-group">
+          <select id="selectSamplePreset" class="select-input select-preset">
+            <option value="" disabled selected>Preset Sprites...</option>
+            <option value="heart">Heart</option>
+            <option value="potion">Magic Potion</option>
+            <option value="sword">Pixel Sword</option>
+            <option value="invader">Alien Invader</option>
+          </select>
+        </div>
+
+        <!-- Export button -->
+        <button id="btnOpenExportModal" class="btn btn-primary btn-sm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="workspace-body">
+      <!-- Left Toolbar (Tools) -->
+      <aside class="left-toolbar" role="toolbar" aria-label="Drawing Tools">
+        <button class="tool-btn active" data-tool="pencil" title="Pencil (P)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+          </svg>
+          <span class="tool-shortcut">P</span>
+        </button>
+
+        <button class="tool-btn" data-tool="eraser" title="Eraser (E)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 20H7L3 16C2 15 2 13 3 12L13 2L22 11L18 15"></path>
+            <path d="M18 15l-6-6"></path>
+          </svg>
+          <span class="tool-shortcut">E</span>
+        </button>
+
+        <button class="tool-btn" data-tool="bucket" title="Paint Bucket / Fill (F)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 11l-8-8-8.5 8.5a2.12 2.12 0 0 0 0 3l5 5a2.12 2.12 0 0 0 3 0L19 11z"></path>
+            <path d="M5 2l5 5"></path>
+            <path d="M2 13h15"></path>
+            <path d="M22 20a2 2 0 1 1-4 0c0-1.6 2-3 2-3s2 1.4 2 3z"></path>
+          </svg>
+          <span class="tool-shortcut">F</span>
+        </button>
+
+        <button class="tool-btn" data-tool="eyedropper" title="Color Eyedropper (I)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 22l5-5"></path>
+            <path d="M14.5 4.5l5 5"></path>
+            <path d="M11 8l5 5"></path>
+            <path d="M13.5 6.5l3 3"></path>
+            <path d="M17.5 2.5a2.12 2.12 0 0 1 3 3L8 18l-6 2 2-6L16.5 1.5z"></path>
+          </svg>
+          <span class="tool-shortcut">I</span>
+        </button>
+
+        <div class="divider-horizontal"></div>
+
+        <button class="tool-btn" data-tool="line" title="Line Tool (L)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="19" x2="19" y2="5"></line>
+            <circle cx="5" cy="19" r="2" fill="currentColor"></circle>
+            <circle cx="19" cy="5" r="2" fill="currentColor"></circle>
+          </svg>
+          <span class="tool-shortcut">L</span>
+        </button>
+
+        <button class="tool-btn" data-tool="rect" title="Rectangle Tool (R)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+          </svg>
+          <span class="tool-shortcut">R</span>
+        </button>
+
+        <button class="tool-btn" data-tool="circle" title="Circle Tool (C)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"></circle>
+          </svg>
+          <span class="tool-shortcut">C</span>
+        </button>
+
+        <button class="tool-btn" data-tool="shade" title="Lighten / Darken Brush (D)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor"></path>
+          </svg>
+          <span class="tool-shortcut">D</span>
+        </button>
+
+        <div class="divider-horizontal"></div>
+
+        <!-- Clear Canvas -->
+        <button id="btnClearCanvas" class="tool-btn danger" title="Clear Canvas">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
+      </aside>
+
+      <!-- Center Canvas Viewport -->
+      <main class="canvas-viewport" id="canvasViewport">
+        <div class="canvas-stage" id="canvasStage">
+          <!-- Checkerboard Pattern Background -->
+          <div class="checkerboard-bg"></div>
+          <!-- Pixel Drawing Canvas -->
+          <canvas id="pixelCanvas" width="16" height="16"></canvas>
+          <!-- Grid & Hover Overlay Canvas -->
+          <canvas id="gridOverlayCanvas" width="16" height="16"></canvas>
+        </div>
+
+        <!-- Coordinates Status Pill -->
+        <div class="coords-pill" id="coordsPill">X: 0, Y: 0</div>
+      </main>
+
+      <!-- Right Panel: Colors, Palette, Preview, Operations -->
+      <aside class="right-panel">
+        <!-- Live Sprite Preview -->
+        <section class="panel-section preview-section">
+          <div class="section-title">
+            <span>Live Preview</span>
+            <div class="preview-bg-switchers">
+              <button class="bg-switch-dot dark active" data-bg="dark" title="Dark bg"></button>
+              <button class="bg-switch-dot light" data-bg="light" title="Light bg"></button>
+              <button class="bg-switch-dot checker" data-bg="checker" title="Transparent bg"></button>
+            </div>
+          </div>
+          <div class="preview-display-box" id="previewBox">
+            <canvas id="previewCanvas1x" class="preview-thumb" width="16" height="16" title="1x (Original)"></canvas>
+            <canvas id="previewCanvas2x" class="preview-thumb" width="32" height="32" title="2x"></canvas>
+            <canvas id="previewCanvas4x" class="preview-thumb" width="64" height="64" title="4x"></canvas>
+          </div>
+        </section>
+
+        <!-- Current Color Selector -->
+        <section class="panel-section color-section">
+          <div class="section-title">Color Selection</div>
+          <div class="current-color-row">
+            <div class="color-picker-wrapper">
+              <input type="color" id="nativeColorPicker" value="#6366f1">
+              <div id="currentColorPreview" class="color-preview-box" style="background-color: #6366f1;"></div>
+            </div>
+            <div class="color-inputs">
+              <input type="text" id="hexColorInput" class="hex-input" value="#6366F1" maxlength="7">
+              <button id="btnAddSwatch" class="btn btn-secondary btn-xs" title="Add color to custom palette">+ Save</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Retro & Theme Palettes -->
+        <section class="panel-section palette-section">
+          <div class="section-title">
+            <span>Palette</span>
+            <select id="selectPalettePreset" class="select-input select-xs">
+              <option value="pico8" selected>Pico-8 (16)</option>
+              <option value="gameboy">Game Boy (4)</option>
+              <option value="nes">NES Retro (16)</option>
+              <option value="cyberpunk">Cyberpunk (12)</option>
+              <option value="pastel">Pastel Cute (12)</option>
+              <option value="custom">My Swatches</option>
+            </select>
+          </div>
+          <div id="paletteSwatches" class="palette-swatches-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- Canvas Transform Operations -->
+        <section class="panel-section transform-section">
+          <div class="section-title">Transform Canvas</div>
+          <div class="transform-buttons-grid">
+            <button id="btnFlipH" class="btn btn-secondary btn-sm" title="Flip Horizontal">
+              ↔ Flip H
+            </button>
+            <button id="btnFlipV" class="btn btn-secondary btn-sm" title="Flip Vertical">
+              ↕ Flip V
+            </button>
+            <button id="btnRotate90" class="btn btn-secondary btn-sm" title="Rotate 90 Degrees Clockwise">
+              🔄 Rotate 90°
+            </button>
+            <button id="btnInvertColors" class="btn btn-secondary btn-sm" title="Invert Colors">
+              🌗 Invert
+            </button>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Export Pixel Art</h3>
+          <button id="btnCloseExportModal" class="btn-icon-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="export-preview-container">
+            <canvas id="exportPreviewCanvas" width="128" height="128"></canvas>
+          </div>
+          <div class="export-options">
+            <label for="selectExportScale">Resolution Scale:</label>
+            <select id="selectExportScale" class="select-input">
+              <option value="1">1x (Native Pixels)</option>
+              <option value="4">4x (Smooth Pixel Art)</option>
+              <option value="8">8x (Crisp HD)</option>
+              <option value="16" selected>16x (Large HD)</option>
+              <option value="32">32x (Ultra 4K Print)</option>
+            </select>
+            <span id="exportDimensionLabel" class="text-muted text-xs">Dimensions: 256 × 256 px</span>
+          </div>
+          <div class="export-actions">
+            <button id="btnDownloadPNG" class="btn btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Download PNG
+            </button>
+            <button id="btnCopyPNG" class="btn btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy Image
+            </button>
+          </div>
+          <div class="divider-horizontal"></div>
+          <div class="project-io-actions">
+            <button id="btnSaveProject" class="btn btn-secondary btn-sm">💾 Save Project (JSON)</button>
+            <label class="btn btn-secondary btn-sm btn-file-label">
+              📂 Load Project
+              <input type="file" id="inputFileProject" accept=".json" class="hidden">
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
