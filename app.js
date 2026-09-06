@@ -131,6 +131,7 @@
   let currentColor = '#6366F1';
   let isPointerDown = false;
   let strokeStartCoord = null;
+  let lastDrawnCoord = null;
   let showGrid = true;
   let zoomLevel = 1.0;
   let customPalette = [];
@@ -145,6 +146,8 @@
   const pixelCtx = pixelCanvas.getContext('2d');
   const gridOverlayCanvas = document.getElementById('gridOverlayCanvas');
   const gridCtx = gridOverlayCanvas.getContext('2d');
+  const gridOverlay = document.getElementById('gridOverlay');
+  const pixelHoverBox = document.getElementById('pixelHoverBox');
   const canvasStage = document.getElementById('canvasStage');
   const canvasViewport = document.getElementById('canvasViewport');
   const coordsPill = document.getElementById('coordsPill');
@@ -208,6 +211,7 @@
   // --- Canvas Setup & Resizing ---
   function initCanvasSize(size) {
     gridSize = size;
+    canvasStage.style.setProperty('--grid-size', gridSize);
     pixels = new Array(gridSize * gridSize).fill(null);
 
     pixelCanvas.width = gridSize;
@@ -233,10 +237,12 @@
   }
 
   function calculateAutoZoom() {
-    // Choose nice display pixel scale according to grid size
-    const available = Math.min(window.innerWidth * 0.6, window.innerHeight * 0.6, 520);
-    const pixelScale = Math.max(8, Math.floor(available / gridSize));
-    const targetSize = gridSize * pixelScale;
+    // Choose nice display pixel scale according to grid size and available viewport
+    const vpWidth = canvasViewport ? canvasViewport.clientWidth : window.innerWidth * 0.6;
+    const vpHeight = canvasViewport ? canvasViewport.clientHeight : window.innerHeight * 0.6;
+    const maxAvailable = Math.min(vpWidth - 36, vpHeight - 36, 520);
+    const pixelScale = Math.max(1, Math.floor(maxAvailable / gridSize));
+    const targetSize = Math.max(200, gridSize * pixelScale);
 
     canvasStage.style.width = `${targetSize}px`;
     canvasStage.style.height = `${targetSize}px`;
@@ -267,16 +273,8 @@
 
   function redrawGrid() {
     gridCtx.clearRect(0, 0, gridSize, gridSize);
-    if (!showGrid) return;
-
-    gridCtx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-    // Vertical grid lines
-    for (let x = 1; x < gridSize; x++) {
-      gridCtx.fillRect(x, 0, 0.08, gridSize);
-    }
-    // Horizontal grid lines
-    for (let y = 1; y < gridSize; y++) {
-      gridCtx.fillRect(0, y, gridSize, 0.08);
+    if (gridOverlay) {
+      gridOverlay.style.display = showGrid ? 'block' : 'none';
     }
   }
 
@@ -331,8 +329,20 @@
   // --- Pixel Manipulation & Tools ---
   function getPixelCoord(e) {
     const rect = canvasStage.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    let clientX = e.clientX;
+    let clientY = e.clientY;
+
+    if (clientX === undefined && e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else if (clientX === undefined && e.changedTouches && e.changedTouches.length > 0) {
+      clientX = e.changedTouches[0].clientX;
+      clientY = e.changedTouches[0].clientY;
+    }
+
+    if (clientX === undefined || clientY === undefined || rect.width === 0 || rect.height === 0) {
+      return { x: 0, y: 0 };
+    }
 
     const scaleX = gridSize / rect.width;
     const scaleY = gridSize / rect.height;
@@ -360,6 +370,7 @@
     isPointerDown = true;
     const coord = getPixelCoord(e);
     strokeStartCoord = coord;
+    lastDrawnCoord = coord;
     pushUndo();
 
     if (currentTool === 'pencil') {
@@ -388,14 +399,31 @@
     const coord = getPixelCoord(e);
     coordsPill.textContent = `X: ${coord.x}, Y: ${coord.y}`;
 
+    if (pixelHoverBox) {
+      pixelHoverBox.style.display = 'block';
+      pixelHoverBox.style.transform = `translate(${coord.x * 100}%, ${coord.y * 100}%)`;
+    }
+
     if (!isPointerDown) return;
 
     if (currentTool === 'pencil') {
-      setPixel(coord.x, coord.y, currentColor);
+      if (lastDrawnCoord) {
+        const line = getLinePoints(lastDrawnCoord.x, lastDrawnCoord.y, coord.x, coord.y);
+        line.forEach((p) => setPixel(p.x, p.y, currentColor));
+      } else {
+        setPixel(coord.x, coord.y, currentColor);
+      }
+      lastDrawnCoord = coord;
       redrawCanvas();
       updatePreviews();
     } else if (currentTool === 'eraser') {
-      setPixel(coord.x, coord.y, null);
+      if (lastDrawnCoord) {
+        const line = getLinePoints(lastDrawnCoord.x, lastDrawnCoord.y, coord.x, coord.y);
+        line.forEach((p) => setPixel(p.x, p.y, null));
+      } else {
+        setPixel(coord.x, coord.y, null);
+      }
+      lastDrawnCoord = coord;
       redrawCanvas();
       updatePreviews();
     } else if (['line', 'rect', 'circle'].includes(currentTool)) {
@@ -410,11 +438,12 @@
   function handlePointerUp(e) {
     if (!isPointerDown) return;
     isPointerDown = false;
+    lastDrawnCoord = null;
 
     if (['line', 'rect', 'circle'].includes(currentTool)) {
-      const coord = getPixelCoord(e.touches ? (e.changedTouches ? e.changedTouches[0] : e) : e);
+      const coord = getPixelCoord(e);
       commitShape(strokeStartCoord, coord, currentTool);
-      redrawGrid(); // Clears preview on overlay
+      gridCtx.clearRect(0, 0, gridSize, gridSize);
       redrawCanvas();
       updatePreviews();
     }
@@ -488,7 +517,7 @@
   }
 
   function renderShapePreview(start, end, shape) {
-    redrawGrid();
+    gridCtx.clearRect(0, 0, gridSize, gridSize);
     gridCtx.fillStyle = currentColor;
 
     if (shape === 'line') {
@@ -800,6 +829,13 @@
     canvasStage.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
+    canvasStage.addEventListener('pointerleave', () => {
+      if (pixelHoverBox && !isPointerDown) {
+        pixelHoverBox.style.display = 'none';
+      }
+    });
+
+    window.addEventListener('resize', calculateAutoZoom);
 
     // Canvas Size Select
     selectCanvasSize.addEventListener('change', (e) => {
